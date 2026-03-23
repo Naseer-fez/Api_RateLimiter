@@ -13,18 +13,18 @@ class RateLimiter:
         self.filename=filename 
         self.filetype=filetype
         self.Data=dict()
-        self.fullpath=os.path.join(folder or "", f"{filename}.{filetype}")
-        self.API_RL(IP_Adrs=ip_adrs)
         self.CurrentFile=None
+        self.fullpath=os.path.join(folder or "", f"{filename}.{filetype}")
         self.Validopen=self.__Fileopener()
+        self.API_RL(IP_Adrs=ip_adrs)
         pass
     def API_RL(self,IP_Adrs:str,Cleaning=False,
                CooldownTime=20,AllowedFreq=8,MinAttempts=10,CleaningFreq=False
                ):
-        if isinstance(str,ipaddress):
-            self.ip=int(ipaddress.ip_address(IP_Adrs))
-        else:
-            self.ip=IP_Adrs
+        # if isinstance(ipaddress,str):
+        #     self.ip=int(ipaddress.ip_address(IP_Adrs))
+        # else:
+        #     self.ip=IP_Adrs
         self.Metrics={
             "Cooldowntime":CooldownTime,
             "AllowedFreq":AllowedFreq,
@@ -39,7 +39,7 @@ class RateLimiter:
                 daemon=True)
             BackgroundThread.start()
         
-        return self.__validator(ip=IP_Adrs)
+        return self.__Validator(ip=IP_Adrs)
 
         
     def __Fileopener(self)->int:
@@ -71,7 +71,7 @@ class RateLimiter:
 
              return 0
         except Exception as error:
-            print("HEHEH")
+ 
             print(error)
             return 0
     def __Filedumper(self,operation=0,Data=None)->int:
@@ -106,8 +106,6 @@ class RateLimiter:
                             
         pass           
     def __Validator(self,ip:int)->int:
-        dkeys=self.Metrics.keys()
-        check = self.Data[ip]
         currenttime=int(time.time())
         lastseen=currenttime-self.Data[ip]["Time"]
         self.Data[ip]["Time"]=currenttime
@@ -122,7 +120,7 @@ class RateLimiter:
             else:
                 self.Data[ip]["Count"]=self.Data[ip]["Count"]+1
                 flag= 1
-            self.__Filedumper(Data=self.Data[ip])
+            self.__Filedumper(Data=self.Data)
             return flag
 
             
@@ -130,7 +128,7 @@ class RateLimiter:
     def __ipcleaner(self,ClnFrq=100):
         self.thread_running=True
         while True:
-            
+            pass
             
         
 
@@ -140,8 +138,8 @@ class RateLimiter:
 
 
 if __name__=="__main__":
-    t=RateLimiter()
-    t.API_RL(IP_Adrs="192.168.1.5")
+    t=RateLimiter("3232235781")
+    t.API_RL("3232235781")
     
         # self.Data[self.ip]={
         #                 "Time":int(time.time()),
