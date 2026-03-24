@@ -140,14 +140,15 @@ class RateLimiter:
                 self.Data[ip]["Time"]=currenttime
                 if  error is False:
                     if lastseen>self.Metrics["Cooldowntime"]:
-                        if ((self.Data[ip]["Count"]>self.Metrics["AllowedFreq"])):
-                            self.Data[ip]["Count"]=0
-                            flag= 0
+                        
+                            self.Data[ip]["Count"]=1
+                            flag= 1
                     else:
-                        if (self.Data[ip]["Count"]>self.Metrics["AllowedFreq"]):
+                        if (self.Data[ip]["Count"]>=self.Metrics["AllowedFreq"]):
+                                flag=0
                                 self.Data[ip]["Count"]=0
                         else:
-                            self.Data[ip]["Count"]=self.Data[ip]["Count"]+1
+                            self.Data[ip]["Count"] += 1
                             flag= 1                
                 self.__Filedumper(Data=self.Data)
                 return (flag or error)   
@@ -191,7 +192,10 @@ class RateLimiter:
         self.thread_running = False 
                     
             
-
+if __name__=="__main__":
+    t=RateLimiter()
+    v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
+    print(v)
 
             
         
