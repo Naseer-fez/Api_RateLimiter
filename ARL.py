@@ -188,7 +188,7 @@ class RateLimiter:
                 # print("Sleep")
 
             # print("Loop End")
-            time.sleep(0.1)
+            time.sleep(ClnFrq)
         self.thread_running = False 
                     
             
