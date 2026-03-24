@@ -16,7 +16,7 @@ class RateLimiter:
         self.filetype=filetype
         self.Data=dict()
         self.CurrentFile=None
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.fullpath=os.path.join(folder or "", f"{filename}.{filetype}")
         self.Validopen=self.__Fileopener()
 
@@ -74,50 +74,53 @@ class RateLimiter:
  
             print(error)
             return 0
-    def __Filedumper(self,operation=0,Data=None,msg=None)->int:
+    def __Filedumper(self,operation=0,Data=None)->int:
         # print(Data)
-        if msg is not None:
-            print(msg[0])
-        with self.lock:
-            if msg is not None: print(msg[1])
-            fullpath=self.fullpath
-            flag=0
-            
-            if Data is None:
-                Data={}
-            if self.CurrentFile is None:
-                self.CurrentFile = open(fullpath, 'w')    
-            try:
-                self.CurrentFile.seek(0)
-                json.dump(Data,self.CurrentFile,indent=4)
-                self.CurrentFile.truncate()
-                self.CurrentFile.flush()
-                flag=1
+        # if msg is not None: print(msg[0])
+        try:  
+            with self.lock:
+                # if msg is not None: print(msg[1])    
+                fullpath=self.fullpath
+                flag=0
                 
-            except Exception as e:
-                try :
-                    with open("LOg..txt",'a') as file:
-                        record=f"{time.time()}:Error is {e}\n"
-                        file.write(record)
-                        
-                    flag=0
-                except Exception as err:
-                    flag=0
+                if Data is None:
+                    Data={}
+                if self.CurrentFile is None:
+                    self.CurrentFile = open(fullpath, 'w')    
+                try:
+                    self.CurrentFile.seek(0)
+                    json.dump(Data,self.CurrentFile,indent=4)
+                    self.CurrentFile.truncate()
+                    self.CurrentFile.flush()
+                    flag=1
+                    
+                except Exception as e:
+                    try :
+                        with open("LOg..txt",'a') as file:
+                            record=f"{time.time()}:Error is {e}\n"
+                            file.write(record)
+                            
+                        flag=0
+                    except Exception as err:
+                        flag=0
 
-            if operation==1:               
-                    self.CurrentFile.close()
-                    self.__isfileopen=False
-                    return 1
-            else:
-                self.__isfileopen=True
-                return flag
+                if operation==1:               
+                        self.CurrentFile.close()
+                        self.__isfileopen=False
+                        return 1
+                else:
+                    self.__isfileopen=True
+                    return flag
+        except Exception as e:
+            print("HEHEH")
 
             
                             
         pass           
     def __Validator(self,ip:int)->int:
 
-        currenttime=int(time.time())        
+        currenttime=int(time.time())
+        kError=None        
         try:
             lastseen=currenttime-self.Data[ip]["Time"]
         except KeyError:
@@ -187,9 +190,9 @@ if __name__=="__main__":
         # self.Data[self.ip]={
         #                 "Time":int(time.time()),
         #                 "Count":1}
-    # import threading
+    import threading
 
-    # print(threading.enumerate())
+    print(threading.enumerate())
 # if __name__ == "__main__":
 
 #     t = RateLimiter()
