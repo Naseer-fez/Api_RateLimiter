@@ -3,8 +3,8 @@ import sys
 from pathlib import Path
 import json
 import time
-# import ipaddress
 import threading
+# import ipaddress
 
 
 class RateLimiter:
@@ -119,7 +119,6 @@ class RateLimiter:
             
                             
         pass           
-    
     def __Validator(self,ip:int)->int:
 
             currenttime=int(time.time())
@@ -152,38 +151,42 @@ class RateLimiter:
                             flag= 1                
                 self.__Filedumper(Data=self.Data)
                 return (flag or error)   
-
     def __ipcleaner(self,ClnFrq=10,restlimit=8):
         
         self.thread_running=True
         CleanData={}
         while not self.stop_event.is_set():
-            
+            # print("Inside the Loop")
             self.stop_event.wait(ClnFrq)
             if self.stop_event.is_set():
                 break
             with self.lock:
+                # print("Inside the Lock")
                 currenttime=int(time.time())
                 # Keystodelete=[]
                 changes=False
                 CleanData=self.Data.copy()
                 keys=list(CleanData.keys())
                 for ip in keys:
+                    # print("Checking IPs")
                     # print("Key here")
                     if(currenttime-CleanData[ip]["Time"]>restlimit):
                         # print("BYEEE")
                         # Keystodelete.append(ip)
+                        # print("Found IP")
                         changes=True
                         try:
                             del CleanData[ip]
                         except Exception as e:
                             print(e)
                 if changes is True:
+                    # print("Bye IPPPP")
                     self.Data=CleanData
                     self.__Filedumper(Data=self.Data)
                     changes=False
                 # print("Sleep")
 
+            # print("Loop End")
             time.sleep(0.1)
         self.thread_running = False 
                     
@@ -196,57 +199,3 @@ class RateLimiter:
 
 
 
-
-
-if __name__=="__main__":
-    t=RateLimiter()
-    v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
-    print(v)
-        # self.Data[self.ip]={
-        #                 "Time":int(time.time()),
-        #                 "Count":1}
-    # import threading
-
-    # print(threading.enumerate())
-    
-# if __name__ == "__main__":
-
-#     t = RateLimiter()
-
-#     # small values for testing
-#     ResetTime = 3
-#     CleaningFreq = 1
-
-#     print("Starting test...\n")
-
-#     # start cleaner thread
-#     t.API_RL(
-#         "127.0.0.1",
-#         Cleaning=True,
-#         CleaningFreq=CleaningFreq,
-#         ResetTime=ResetTime
-#     )
-
-#     ips = [
-#         "127.0.0.1",
-#         "127.0.0.2",
-#         "127.0.0.3",
-#         "127.0.0.4"
-#     ]
-
-#     # add data
-#     for i in range(4):
-#         ip = ips[i]
-#         print("Adding:", ip)
-#         t.API_RL(ip,Cleaning=False)
-#         time.sleep(1)
-
-#     print("\nData after adding:")
-#     print(t.Data)
-
-#     # wait for cleaner to remove
-#     print("\nWaiting for cleaner...\n")
-
-#     for i in range(8):
-#         time.sleep(1)
-#         print("Time:", i, "Data:", t.Data)
