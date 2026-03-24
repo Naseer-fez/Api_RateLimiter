@@ -17,6 +17,7 @@ class RateLimiter:
         self.Data=dict()
         self.CurrentFile=None
         self.lock = threading.RLock()
+        self.stop_event = threading.Event()
         self.fullpath=os.path.join(folder or "", f"{filename}.{filetype}")
         self.Validopen=self.__Fileopener()
 
@@ -36,9 +37,10 @@ class RateLimiter:
         if Cleaning and not self.thread_running:
             self.thread_running=True
             BackgroundThread=threading.Thread(
+            
                 target=self.__ipcleaner,
                 args=(CleaningFreq,ResetTime,),
-                daemon=True)
+                daemon=False)
             BackgroundThread.start()
             
         return self.__Validator(ip=IP_Adrs)
@@ -117,60 +119,73 @@ class RateLimiter:
             
                             
         pass           
+    
     def __Validator(self,ip:int)->int:
 
-        currenttime=int(time.time())
-        kError=None        
-        try:
-            lastseen=currenttime-self.Data[ip]["Time"]
-        except KeyError:
+            currenttime=int(time.time())
+            error=False
+            flag=1
+            with self.lock:  
+                try:
+                    lastseen=currenttime-self.Data[ip]["Time"]
+                except KeyError:
 
-            self.Data[ip]={
-                "Time":currenttime,
-                "Count":1   
-            }
+                    self.Data[ip]={
+                        "Time":currenttime,
+                        "Count":1   
+                    }
+                    error=True
 
-            self.__Filedumper(Data=self.Data)
-            return 1
-        self.Data[ip]["Time"]=currenttime
-        flag=1
-        if lastseen>self.Metrics["Cooldowntime"]:
-            if ((self.Data[ip]["Count"]>self.Metrics["AllowedFreq"])):
-                self.Data[ip]["Count"]=0
-                flag= 0
-        else:
-            if (self.Data[ip]["Count"]>self.Metrics["AllowedFreq"]):
-                    self.Data[ip]["Count"]=0
-            else:
-                self.Data[ip]["Count"]=self.Data[ip]["Count"]+1
-                flag= 1
-            self.__Filedumper(Data=self.Data)
 
-            return flag          
+
+                self.Data[ip]["Time"]=currenttime
+                if  error is False:
+                    if lastseen>self.Metrics["Cooldowntime"]:
+                        if ((self.Data[ip]["Count"]>self.Metrics["AllowedFreq"])):
+                            self.Data[ip]["Count"]=0
+                            flag= 0
+                    else:
+                        if (self.Data[ip]["Count"]>self.Metrics["AllowedFreq"]):
+                                self.Data[ip]["Count"]=0
+                        else:
+                            self.Data[ip]["Count"]=self.Data[ip]["Count"]+1
+                            flag= 1                
+                self.__Filedumper(Data=self.Data)
+                return (flag or error)   
+
     def __ipcleaner(self,ClnFrq=10,restlimit=8):
         
         self.thread_running=True
         CleanData={}
-        while True:
+        while not self.stop_event.is_set():
+            
+            self.stop_event.wait(ClnFrq)
+            if self.stop_event.is_set():
+                break
             with self.lock:
                 currenttime=int(time.time())
-                
+                # Keystodelete=[]
+                changes=False
                 CleanData=self.Data.copy()
                 keys=list(CleanData.keys())
                 for ip in keys:
                     # print("Key here")
                     if(currenttime-CleanData[ip]["Time"]>restlimit):
                         # print("BYEEE")
+                        # Keystodelete.append(ip)
+                        changes=True
                         try:
                             del CleanData[ip]
                         except Exception as e:
                             print(e)
-
-                self.Data=CleanData
+                if changes is True:
+                    self.Data=CleanData
+                    self.__Filedumper(Data=self.Data)
+                    changes=False
                 # print("Sleep")
-                var=self.__Filedumper(Data=self.Data,msg=["GOINGGGG","Comming"])
-                print("HEHEHE")
-            time.sleep(0.1) 
+
+            time.sleep(0.1)
+        self.thread_running = False 
                     
             
 
@@ -190,9 +205,10 @@ if __name__=="__main__":
         # self.Data[self.ip]={
         #                 "Time":int(time.time()),
         #                 "Count":1}
-    import threading
+    # import threading
 
-    print(threading.enumerate())
+    # print(threading.enumerate())
+    
 # if __name__ == "__main__":
 
 #     t = RateLimiter()
