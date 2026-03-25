@@ -1,6 +1,6 @@
 from flask import Flask,request,render_template
 from ARL import RateLimiter as Rl
-
+import time
 app=Flask(__name__)
 
 
@@ -10,10 +10,11 @@ def home():
     v=Rl()
     check=v.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
     # v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
-    if check:
+    if check==1:
         return render_template("index.html", Msg=f"Hiii,{ip}")
     else:
-        return render_template("index.html", Msg=f"Waitttttttttt")
+
+        return render_template("index.html", Msg=f"Waitttttttttt for {check}")
     
    
 

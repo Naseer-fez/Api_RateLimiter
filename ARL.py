@@ -23,7 +23,7 @@ class RateLimiter:
 
         pass
     def API_RL(self,IP_Adrs:str,Cleaning=False,
-               CooldownTime=20,AllowedFreq=8,MinAttempts=10,CleaningFreq=8,ResetTime=8
+               CooldownTime=20,AllowedFreq=8,MinAttempts=10,CleaningFreq=8,ResetTime=8,Sleeptime=8
                ):
         # if isinstance(ipaddress,str):
         #     self.ip=int(ipaddress.ip_address(IP_Adrs))
@@ -43,7 +43,7 @@ class RateLimiter:
                 daemon=False)
             BackgroundThread.start()
             
-        return self.__Validator(ip=IP_Adrs)
+        return self.__Validator(ip=IP_Adrs,CoolDown=Sleeptime)
     def __Fileopener(self)->int:
         if getattr(self, "__isfileopen", False):
             return 0
@@ -119,36 +119,42 @@ class RateLimiter:
             
                             
         pass           
-    def __Validator(self,ip:int)->int:
+    def __Validator(self,ip:int,CoolDown=8)->int:
 
             currenttime=int(time.time())
             error=False
             flag=1
             with self.lock:  
                 try:
-                    lastseen=currenttime-self.Data[ip]["Time"]
+                    lastseen=currenttime-self.Data[ip]["LastSeenTime"]
                 except KeyError:
 
                     self.Data[ip]={
                         "WindowTime":currenttime,
-                        "CurrentTime":currenttime,
-                        "Count":1   
+                        "LastSeenTime":currenttime,
+                        "Visits":1   
                     }
                     error=True
                 self.Data[ip]["Time"]=currenttime
                 if  error is False:
                     if lastseen>self.Metrics["Cooldowntime"]:
                         
-                            self.Data[ip]["Count"]=1
+                            self.Data[ip]["Visits"]=1
                             flag= 1
                     else:
-                        if (self.Data[ip]["Count"]>=self.Metrics["AllowedFreq"]):
+                        if (self.Data[ip]["Visits"]>=self.Metrics["AllowedFreq"]):
                                 flag=0
-                                self.Data[ip]["Count"]=0
+                                self.Data[ip]["Visits"]=0
+                                
                         else:
-                            self.Data[ip]["Count"] += 1
+                            self.Data[ip]["Visits"] += 1
                             flag= 1                
                 self.__Filedumper(Data=self.Data)
+                if flag==0:
+                    time.sleep(CoolDown)
+                    flag=1
+                    
+                    
                 return (flag or error)   
 
 
@@ -172,7 +178,7 @@ class RateLimiter:
                 for ip in keys:
                     # print("Checking IPs")
                     # print("Key here")
-                    if(currenttime-CleanData[ip]["Time"]>restlimit):
+                    if(currenttime-CleanData[ip]["LastSeenTime"]>restlimit):
                         # print("BYEEE")
                         # Keystodelete.append(ip)
                         # print("Found IP")
