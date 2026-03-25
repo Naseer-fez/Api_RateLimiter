@@ -130,13 +130,11 @@ class RateLimiter:
                 except KeyError:
 
                     self.Data[ip]={
-                        "Time":currenttime,
+                        "WindowTime":currenttime,
+                        "CurrentTime":currenttime,
                         "Count":1   
                     }
                     error=True
-
-
-
                 self.Data[ip]["Time"]=currenttime
                 if  error is False:
                     if lastseen>self.Metrics["Cooldowntime"]:
@@ -152,6 +150,9 @@ class RateLimiter:
                             flag= 1                
                 self.__Filedumper(Data=self.Data)
                 return (flag or error)   
+
+
+
     def __ipcleaner(self,ClnFrq=10,restlimit=8):
         
         self.thread_running=True
