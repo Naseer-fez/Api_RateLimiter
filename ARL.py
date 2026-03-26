@@ -33,6 +33,7 @@ class RateLimiter:
         self.Metrics={
             "CooldownTime":CooldownTime,
             "AllowedFreq":AllowedFreq,
+           
                  }
         # background_thread = threading.Thread(target=self.hehe, args=(start_val,), daemon=True)
         if Cleaning and not self.thread_running:
@@ -147,22 +148,12 @@ class RateLimiter:
                     else:
                         Datacopy=copy.deepcopy(self.Data)
                         self.Data[ip],flag=  self.__RecentVists(Data=Datacopy[ip],CrnTime=currenttime)
+
                 self.__Filedumper(Data=self.Data)                    
-                return (int(flag) or error)   
+                return (flag or error)   
     def __RecentVists(self,Data,CrnTime)->tuple: #Solution For DeadLock
         
-        """  
-            IF the visits are more than the Threshold , now You need to Do the actial work 
-            FIrst make the user to have a wait time.
-            Open another thread or make the user wait for sometime.
-            
-            Give the waitstamp the current time .SO that it will be easy to calculate 
-            and wait time the Futute time with threshodl , all this int so thae measn it will be easy to calucluate.
-            mean while just be retuting the current time - the wait time , mod of that so that it wont be negative
-            and when it is zero , make the visits as one and the rest as 0        
-        
-        WaitStamp
-        """
+
         if Data["Visits"]<=self.Metrics["AllowedFreq"]:
             Data["WaitStamp"]=0
             Data["Visits"]+=1
@@ -175,9 +166,11 @@ class RateLimiter:
         else:
             timetosend=Data["WaitStamp"]-CrnTime
             Data["Visits"]+=1
-            if timetosend<=1:
+            if timetosend<=0:
                 Data["WaitStamp"]=0
                 Data["Visits"]=0
+                timetosend=1
+            
             return (Data,timetosend)        
     def __ipcleaner(self,ClnFrq=100,restlimit=80):
         
