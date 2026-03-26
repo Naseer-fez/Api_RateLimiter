@@ -4,7 +4,8 @@ from pathlib import Path
 import json
 import time
 import threading
-# import ipaddress
+import copy
+
 
 
 class RateLimiter:
@@ -23,16 +24,16 @@ class RateLimiter:
 
         pass
     def API_RL(self,IP_Adrs:str,Cleaning=False,
-               CooldownTime=20,AllowedFreq=8,MinAttempts=10,CleaningFreq=8,ResetTime=8,Sleeptime=8
-               ):
+               CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8
+               )->int:
         # if isinstance(ipaddress,str):
         #     self.ip=int(ipaddress.ip_address(IP_Adrs))
         # else:print("Here")
         #     self.ip=IP_Adrs
         self.Metrics={
-            "Cooldowntime":CooldownTime,
+            "CooldownTime":CooldownTime,
             "AllowedFreq":AllowedFreq,
-            "MinAttempts":MinAttempts }
+                 }
         # background_thread = threading.Thread(target=self.hehe, args=(start_val,), daemon=True)
         if Cleaning and not self.thread_running:
             self.thread_running=True
@@ -43,7 +44,7 @@ class RateLimiter:
                 daemon=False)
             BackgroundThread.start()
             
-        return self.__Validator(ip=IP_Adrs,CoolDown=Sleeptime)
+        return self.__Validator(ip=IP_Adrs)
     def __Fileopener(self)->int:
         if getattr(self, "__isfileopen", False):
             return 0
@@ -119,7 +120,7 @@ class RateLimiter:
             
                             
         pass           
-    def __Validator(self,ip:int,CoolDown=8)->int:
+    def __Validator(self,ip:int)->int:
 
             currenttime=int(time.time())
             error=False
@@ -130,36 +131,55 @@ class RateLimiter:
                 except KeyError:
 
                     self.Data[ip]={
-                        "WindowTime":currenttime,
+                        # "WaitTime":0,
+                        "WaitStamp":0,
                         "LastSeenTime":currenttime,
                         "Visits":1   
                     }
                     error=True
-                self.Data[ip]["Time"]=currenttime
+                self.Data[ip]["LastSeenTime"]=currenttime
                 if  error is False:
-                    if lastseen>self.Metrics["Cooldowntime"]:
-                        
+                    if lastseen>self.Metrics["CooldownTime"]:
+                            # self.Data[ip]["WaitTime"]=0
+                            self.Data[ip]["WaitStamp"]=0
                             self.Data[ip]["Visits"]=1
                             flag= 1
                     else:
-                        if (self.Data[ip]["Visits"]>=self.Metrics["AllowedFreq"]):
-                                flag=0
-                                self.Data[ip]["Visits"]=0
-                                
-                        else:
-                            self.Data[ip]["Visits"] += 1
-                            flag= 1                
-                self.__Filedumper(Data=self.Data)
-                if flag==0:
-                    time.sleep(CoolDown)
-                    flag=1
-                    
-                    
-                return (flag or error)   
-
-
-
-    def __ipcleaner(self,ClnFrq=10,restlimit=8):
+                        Datacopy=copy.deepcopy(self.Data)
+                        self.Data[ip],flag=  self.__RecentVists(Data=Datacopy[ip],CrnTime=currenttime)
+                self.__Filedumper(Data=self.Data)                    
+                return (int(flag) or error)   
+    def __RecentVists(self,Data,CrnTime)->tuple: #Solution For DeadLock
+        
+        """  
+            IF the visits are more than the Threshold , now You need to Do the actial work 
+            FIrst make the user to have a wait time.
+            Open another thread or make the user wait for sometime.
+            
+            Give the waitstamp the current time .SO that it will be easy to calculate 
+            and wait time the Futute time with threshodl , all this int so thae measn it will be easy to calucluate.
+            mean while just be retuting the current time - the wait time , mod of that so that it wont be negative
+            and when it is zero , make the visits as one and the rest as 0        
+        
+        WaitStamp
+        """
+        if Data["Visits"]<=self.Metrics["AllowedFreq"]:
+            Data["WaitStamp"]=0
+            Data["Visits"]+=1
+            return (Data,1)
+        # timetowait=0
+        if Data["WaitStamp"]==0:
+            Data["WaitStamp"]=CrnTime+self.Metrics["CooldownTime"]
+            Data["Visits"]+=1
+            return (Data,self.Metrics["CooldownTime"])
+        else:
+            timetosend=Data["WaitStamp"]-CrnTime
+            Data["Visits"]+=1
+            if timetosend<=1:
+                Data["WaitStamp"]=0
+                Data["Visits"]=0
+            return (Data,timetosend)        
+    def __ipcleaner(self,ClnFrq=100,restlimit=80):
         
         self.thread_running=True
         CleanData={}
@@ -200,6 +220,7 @@ class RateLimiter:
                     
             
 if __name__=="__main__":
+
     t=RateLimiter()
     v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
     print(v)

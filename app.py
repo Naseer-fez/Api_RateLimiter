@@ -8,7 +8,8 @@ app=Flask(__name__)
 def home():
     ip=request.remote_addr
     v=Rl()
-    check=v.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
+
+    check=int(v.API_RL("127.0.0.2",Cleaning=False,CooldownTime=7))
     # v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
     if check==1:
         return render_template("index.html", Msg=f"Hiii,{ip}")
