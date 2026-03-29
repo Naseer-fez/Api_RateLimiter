@@ -1,7 +1,7 @@
 # **API RateLimiter V2**
 
 ## What is a API Rate Limiter?
-### An API(Application Programing Interface) is a traffic control component desgined to restrict the number of requests from a client to the server.
+### An API(Application Programing Interface) Rate Limiter  is a traffic control component desgined to restrict the number of requests from a client to the server.
 
 
 ## Improvemnts from the Previous Version:
@@ -28,7 +28,7 @@ RL = RateLimiter()
 APIRL = RL.API_RL
 
 # Checking rate limit for a specific IP
-CoolDown=APIRL(IP_Adrs="127.0.0.1", #IP address of the Client
+CoolDown=APIRL(IP_Adrs="127.0.0.1", #IP address ofthe Client
 Cleaning=False, #To Enable the Ip Address  Cleaning 
 CleaningFreq=80,# The Frequency at which the cleaning shoudl occur
 CooldownTime=20, #Amount of time differnce the Clients last vist shoudld 
@@ -49,13 +49,14 @@ else: # the Request is denied
 ___
 ## Libaries Used:
 ### 
-1. Os
-2. Json
-3. Pathlib
-4. Threading
-5. Time
-6. copy
-___
+1. #### Os
+2. #### Json
+3. #### Pathlib
+4. #### Threading
+5. #### Time
+6. #### copy
+
+
 
 ## Architecture
 ___
@@ -72,4 +73,8 @@ ___
   }
 }
 ```
-- ####  talk about the memory 
+- ### The main Idelogy of this project is to reduce the complexity for the developers so that they can focus completely on developing the code rather than the security  aspect of the server
+
+## Advice
+---
+### A Using of the Decorator is recomended as this reduces the boiler plate code and make the flow of the code easier to understand and also make sure the bugs have a root file to debug.
