@@ -79,3 +79,4 @@ ___
 ## Advice
 ---
 ### A Using of the Decorator is recomended as this reduces the boiler plate code and make the flow of the code easier to understand and also make sure the bugs have a root file to debug.
+### A samll Decorator Example is Given But, that is for Flask Implementation Depening on your API Framework You need to change the Code , A small Line chnage depening on your FrameWork will do the job 
