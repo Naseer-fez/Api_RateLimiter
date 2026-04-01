@@ -8,7 +8,7 @@ import copy
 
 
 
-class RateLimiter:
+class __RateLimiter:
     __isfileopen :bool = False
     __samplefile = Path(sys.modules['__main__'].__file__).stem
     def __init__(self,filename=__samplefile,filetype="json",folder=None):
@@ -211,10 +211,23 @@ class RateLimiter:
             time.sleep(ClnFrq)
         self.thread_running = False 
                     
+
+__Rl=__RateLimiter()
+def Ratelimiter(IP_Adrs:str,Cleaning=False,
+                CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,Filename=None,Folder=None)->int:
+    global __Rl
+    if (Filename is not None) and (Folder is not None):
+        __Rl = __RateLimiter(filename=Filename, folder=Folder)
+    
+    
+    
+    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,
+               CooldownTime=CooldownTime,AllowedFreq=AllowedFreq,CleaningFreq=CleaningFreq,ResetTime=ResetTime))
+
             
 if __name__=="__main__":
 
-    t=RateLimiter()
+    t=__RateLimiter()
     v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
     print(v)
 
