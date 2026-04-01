@@ -22,10 +22,8 @@ ______
 _____
 ##  How to Run
 ```python
-from ARL import RateLimiter
-
-RL = RateLimiter()
-APIRL = RL.API_RL
+from ARL import RateLimiter as APIRL
+#Import the Function
 
 # Checking rate limit for a specific IP
 CoolDown=APIRL(IP_Adrs="127.0.0.1", #IP address ofthe Client
@@ -36,6 +34,9 @@ CooldownTime=20, #Amount of time differnce the Clients last vist shoudld
 AllowedFreq=8, #The Number of Fair attempts the Client can send the request to the server
 ResetTime=8 # After the Client is denied the access , how much time 
 #they need to wait to get the access again 
+FileName="Test" # The file name to store the data
+FileType=".json" # The File extenstion
+FolderPath="Test" # The path at which u want to store this results
 )
 if CoolDown == 1: #The Client  can  access the API
     return "You are a Valid user"

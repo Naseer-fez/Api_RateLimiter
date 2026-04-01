@@ -214,10 +214,10 @@ class __RateLimiter:
 
 __Rl=__RateLimiter()
 def Ratelimiter(IP_Adrs:str,Cleaning=False,
-                CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,Filename=None,Folder=None)->int:
+                CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,Filename=None,FolderPath=None,FileType=".json")->int:
     global __Rl
-    if (Filename is not None) and (Folder is not None):
-        __Rl = __RateLimiter(filename=Filename, folder=Folder)
+    if (Filename is not None) and (FolderPath is not None):
+        __Rl = __RateLimiter(filename=Filename, folder=FolderPath,filetype=FileType)
     
     
     
@@ -227,8 +227,8 @@ def Ratelimiter(IP_Adrs:str,Cleaning=False,
             
 if __name__=="__main__":
 
-    t=__RateLimiter()
-    v=t.API_RL("127.0.0.2",Cleaning=True,CleaningFreq=1,CooldownTime=7)
+    
+    v=Ratelimiter("127.0.0.2",Cleaning=0,CleaningFreq=1,CooldownTime=7)
     print(v)
 
             

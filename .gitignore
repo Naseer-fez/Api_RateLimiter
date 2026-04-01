@@ -1,5 +1,5 @@
 __pycache__/
 tempCodeRunnerFile.py
-.json
+*.json
 test.py
 TestRunner.json
