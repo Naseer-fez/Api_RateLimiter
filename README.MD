@@ -22,7 +22,7 @@ ______
 _____
 ##  How to Run
 ```python
-from ARL import RateLimiter as APIRL
+from ARL import Ratelimiter as APIRL
 #Import the Function
 
 # Checking rate limit for a specific IP
