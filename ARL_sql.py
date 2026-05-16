@@ -40,14 +40,18 @@ class __RateLimiter:
                  }
         # background_thread = threading.Thread(target=self.hehe, args=(start_val,), daemon=True)
         if (Cleaning or (AutoUpdate)) and not self.thread_running:
-            self.thread_running=True
-            BackgroundThread=threading.Thread(
-            
-                target=self.__BackgroundWorker,
-                args=(CleaningFreq,ResetTime,UpdateFreq,Cleaning,),
-                daemon=False)
-            BackgroundThread.start()
-            
+            try:
+                self.thread_running=True
+                BackgroundThread=threading.Thread(
+                
+                    target=self.__BackgroundWorker,
+                    args=(CleaningFreq,ResetTime,UpdateFreq,Cleaning,),
+                    daemon=False)
+                BackgroundThread.start()
+            except Exception as e:
+                print("Erro reached")
+                Cleaning=False
+                AutoUpdate=False
         return self.__Validator(ip=IP_Adrs)
     def __Fileopener(self)->int:
         if getattr(self, "__isfileopen", False):
@@ -74,12 +78,11 @@ class __RateLimiter:
             print(e)
             return 0 
         return 1
-    def __Filedumper(self,operation=0,Data=None)->int:
+    def __Filedumper(self,operation=0,Data=None,update=1)->int:
         # print(Data)
         # if msg is not None: print(msg[0])
-        if self.AutoUpdate :
+        if (update & self.AutoUpdate) :
             return 1
-            
         try:  
             with self.lock:
                 # if msg is not None: print(msg[1])    
@@ -93,7 +96,7 @@ class __RateLimiter:
                    #Write the data 
                     for keys,data in self.Data.items():
                         datatodump=json.dumps(data)
-                        self.cursor.execute("Insert into UserIps (IP,jsondata) VALUES (?,?)",(keys,datatodump,))
+                        self.cursor.execute("Insert or replace  into UserIps (IP,jsondata) VALUES (?,?)",(keys,datatodump,))
                         self.connection.commit()
                 #    self.connection.close()
                     flag=1
@@ -116,7 +119,9 @@ class __RateLimiter:
                     self.__isfileopen=True
                     return flag
         except Exception as e:
-            print("HEHEH")
+            with open("LOg..txt",'a') as file:
+                        record=f"{time.time()}:Error is {e}\n"
+                        file.write(record)
 
             
                             
@@ -177,14 +182,17 @@ class __RateLimiter:
         self.thread_running=True
         CleanData={}
         Slptime=self.__Timecalculator(ClnFrq,UpdateFreq)
+        print("Entred Background Worker")
         while not self.stop_event.is_set():
             # print("Inside the Loop")
             self.stop_event.wait(ClnFrq)
             if self.stop_event.is_set():
                 break
             #here write about the clenaing freq
-            self.__Filedumper(Data=self.Data)
+            print(Cleaning)
+            self.__Filedumper(Data=self.Data,update=0)
             if Cleaning:
+
                 currenttime=int(time.time())
                 try:
                     self.cursor.execute("Delete  from UserIps where  ?- LastSeenTime >?",(currenttime,restlimit,))
@@ -206,7 +214,7 @@ class __RateLimiter:
             time.sleep(Slptime)
         self.thread_running = False 
     def __Timecalculator(self,CleaningFrq,UpdateFreq)->int:
-        return UpdateFreq                
+        return 2                
 
 __Rl=__RateLimiter()
 def Ratelimiter(IP_Adrs:str,Cleaning=False,AutoUpdate=False,
