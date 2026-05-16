@@ -23,25 +23,26 @@ class __RateLimiter:
         self.Validopen=self.__Fileopener()
 
         pass
-    def API_RL(self,IP_Adrs:str,Cleaning=False,
-               CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8
-               )->int:
+    def API_RL(self,IP_Adrs:str,Cleaning=False,AutoUpdate=False,
+               CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,
+               UpdateFreq=80)->int:
         # if isinstance(ipaddress,str):
         #     self.ip=int(ipaddress.ip_address(IP_Adrs))
         # else:print("Here")
         #     self.ip=IP_Adrs
+        self.AutoUpdate=AutoUpdate
         self.Metrics={
             "CooldownTime":CooldownTime,
             "AllowedFreq":AllowedFreq,
            
                  }
         # background_thread = threading.Thread(target=self.hehe, args=(start_val,), daemon=True)
-        if Cleaning and not self.thread_running:
+        if (Cleaning or (AutoUpdate)) and not self.thread_running:
             self.thread_running=True
             BackgroundThread=threading.Thread(
             
-                target=self.__ipcleaner,
-                args=(CleaningFreq,ResetTime,),
+                target=self.__BackgroundWorker,
+                args=(CleaningFreq,ResetTime,UpdateFreq,Cleaning,),
                 daemon=False)
             BackgroundThread.start()
             
@@ -78,9 +79,11 @@ class __RateLimiter:
  
             print(error)
             return 0
-    def __Filedumper(self,operation=0,Data=None)->int:
+    def __Filedumper(self,operation=0,Data=None,update=1)->int:
         # print(Data)
         # if msg is not None: print(msg[0])
+        if (self.AutoUpdate and update) :
+            return 1
         try:  
             with self.lock:
                 # if msg is not None: print(msg[1])    
@@ -149,7 +152,7 @@ class __RateLimiter:
                         Datacopy=copy.deepcopy(self.Data)
                         self.Data[ip],flag=  self.__RecentVists(Data=Datacopy[ip],CrnTime=currenttime)
 
-                self.__Filedumper(Data=self.Data)                    
+                self.__Filedumper(Data=self.Data,update=0)                    
                 return (flag or error)   
     def __RecentVists(self,Data,CrnTime)->tuple: #Solution For DeadLock
         
@@ -172,58 +175,61 @@ class __RateLimiter:
                 timetosend=1
             
             return (Data,timetosend)        
-    def __ipcleaner(self,ClnFrq=100,restlimit=80):
+    def __BackgroundWorker(self,ClnFrq=100,restlimit=80,UpdateFreq=80,Cleaning=False):
         
         self.thread_running=True
         CleanData={}
+        Slptime=self.__Timecalculator(ClnFrq,UpdateFreq)
         while not self.stop_event.is_set():
             # print("Inside the Loop")
             self.stop_event.wait(ClnFrq)
             if self.stop_event.is_set():
                 break
-            with self.lock:
-                # print("Inside the Lock")
-                currenttime=int(time.time())
-                # Keystodelete=[]
-                changes=False
-                CleanData=self.Data.copy()
-                keys=list(CleanData.keys())
-                for ip in keys:
-                    # print("Checking IPs")
-                    # print("Key here")
-                    if(currenttime-CleanData[ip]["LastSeenTime"]>restlimit):
-                        # print("BYEEE")
-                        # Keystodelete.append(ip)
-                        # print("Found IP")
-                        changes=True
-                        try:
-                            del CleanData[ip]
-                        except Exception as e:
-                            print(e)
-                if changes is True:
-                    # print("Bye IPPPP")
-                    self.Data=CleanData
-                    self.__Filedumper(Data=self.Data)
+            if Cleaning:
+                with self.lock:
+                    # print("Inside the Lock")
+                    currenttime=int(time.time())
+                    # Keystodelete=[]
                     changes=False
+                    CleanData=self.Data.copy()
+                    keys=list(CleanData.keys())
+                    for ip in keys:
+                        # print("Checking IPs")
+                        # print("Key here")
+                        if(currenttime-CleanData[ip]["LastSeenTime"]>restlimit):
+                            # print("BYEEE")
+                            # Keystodelete.append(ip)
+                            # print("Found IP")
+                            changes=True
+                            try:
+                                del CleanData[ip]
+                            except Exception as e:
+                                print(e)
+                    if changes is True:
+                        # print("Bye IPPPP")
+                        self.Data=CleanData
+                        changes=False
+            
+            self.__Filedumper(Data=self.Data)
                 # print("Sleep")
 
             # print("Loop End")
-            time.sleep(ClnFrq)
+            time.sleep(Slptime)
         self.thread_running = False 
-                    
+    def __Timecalculator(self,CleaningFrq,UpdateFreq)->int:
+        return UpdateFreq                    
 
 __Rl=__RateLimiter()
-def Ratelimiter(IP_Adrs:str,Cleaning=False,
-                CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,Filename=None,FolderPath=None,FileType=".json")->int:
+def Ratelimiter(IP_Adrs:str,Cleaning=False,AutoUpdate=False,
+                CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,UpdateFreq=8,Filename=None,FolderPath=None)->int:
     global __Rl
     if (Filename is not None) and (FolderPath is not None):
-        __Rl = __RateLimiter(filename=Filename, folder=FolderPath,filetype=FileType)
+        __Rl = __RateLimiter(filename=Filename, folder=FolderPath)
     
-    
-    
-    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,
-               CooldownTime=CooldownTime,AllowedFreq=AllowedFreq,CleaningFreq=CleaningFreq,ResetTime=ResetTime))
+    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,AutoUpdate=AutoUpdate,
+               CooldownTime=CooldownTime,AllowedFreq=AllowedFreq,CleaningFreq=CleaningFreq,ResetTime=ResetTime,UpdateFreq=UpdateFreq))
 
+            
             
 if __name__=="__main__":
 
