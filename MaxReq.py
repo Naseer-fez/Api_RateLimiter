@@ -1,11 +1,24 @@
 import time
 import random
 import concurrent.futures
-from ARL import RateLimiter as Rl
+Chance=3
+while Chance:
+    select=int(input("Select 1 for Json \nSelect 2 for SQL Lite:"))
+    if(select==1):
+            from ARL import Ratelimiter as Rl
+            break
+    elif (select==2):
+            from ARL_sql import Ratelimiter as Rl
+            break
+    else:
+        print("Select Propely")
+        Chance=Chance-1
+if Chance==0:
+    exit()    
 
 def simulate_request(rl, ip_pool, cooldown, allowed_freq):
     ip = random.choice(ip_pool)
-    is_allowed = rl.API_RL(
+    is_allowed = Rl(
         IP_Adrs=ip, 
         CooldownTime=cooldown, 
         AllowedFreq=allowed_freq,
@@ -14,7 +27,6 @@ def simulate_request(rl, ip_pool, cooldown, allowed_freq):
     return ip, is_allowed
 
 if __name__ == "__main__":
-    rl = Rl(filename="stress_test_limit", filetype="json")
     
   
     total_requests = 1000
@@ -31,7 +43,7 @@ if __name__ == "__main__":
     results = {"ALLOWED": 0, "BLOCKED": 0}
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(simulate_request, rl, test_ips, cooldown, allowed_freq) for _ in range(total_requests)]
+        futures = [executor.submit(simulate_request,Rl, test_ips, cooldown, allowed_freq) for _ in range(total_requests)]
         
         for future in concurrent.futures.as_completed(futures):
             _, is_allowed = future.result()

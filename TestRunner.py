@@ -12,9 +12,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from collections import defaultdict
 from typing import Optional
-
-from ARL import RateLimiter as Rl
-
+Chance=3
+while Chance:
+    select=int(input("Select 1 for Json \nSelect 2 for SQL Lite:"))
+    if(select==1):
+            from ARL import Ratelimiter as Rl
+            break
+    elif (select==2):
+            from ARL_sql import Ratelimiter as Rl
+            break
+    else:
+        print("Select Propely")
+        Chance=Chance-1
+if Chance==0:
+    exit()     
 # ── Config ──────────────────────────────────────────────────────────────────
 
 @dataclass
@@ -60,7 +71,7 @@ class AtomicCounters:
 def _call_api(rl: Rl, ip: str, cleaning_freq: int) -> int:
     """Single API call; returns 1 on success, 0 on failure."""
     try:
-        return rl.API_RL(IP_Adrs=ip, Cleaning=False, CleaningFreq=cleaning_freq)
+        return rl(IP_Adrs=ip, Cleaning=False, CleaningFreq=cleaning_freq)
     except Exception:
         return 0
 
@@ -68,7 +79,6 @@ def _call_api(rl: Rl, ip: str, cleaning_freq: int) -> int:
 
 def run_test(cfg: TestConfig = TestConfig()) -> dict:
     rng    = random.Random(cfg.seed)
-    rl     = Rl()                          # one shared instance (thread-safe assumed)
     totals = AtomicCounters()
 
     # Pre-generate the full user pool once
@@ -89,7 +99,7 @@ def run_test(cfg: TestConfig = TestConfig()) -> dict:
             for user in sample:
                 count += 1
                 ip = f"{user}{count}"
-                fut = exe.submit(_call_api, rl, ip, cfg.cleaning_freq)
+                fut = exe.submit(_call_api, Rl, ip, cfg.cleaning_freq)
                 futures[fut] = ip
 
             batch_fail = 0
@@ -155,6 +165,7 @@ def _parse_args() -> TestConfig:
     )
 
 if __name__ == "__main__":
+
     cfg = _parse_args()
 
     print("=" * 60)
