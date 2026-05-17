@@ -24,6 +24,7 @@ class __RateLimiter:
         self.connection=None
         self.Validopen=self.__Fileopener()
         self.AutoUpdate=False
+        self.Changes=set()
         pass
     def API_RL(self,IP_Adrs:str,Cleaning=False,AutoUpdate=False,
                CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,
@@ -94,16 +95,20 @@ class __RateLimiter:
                 
                 try:
                    #Write the data 
-                    for keys,data in self.Data.items():
-                        datatodump=json.dumps(data)
-                        self.cursor.execute("Insert or replace  into UserIps (IP,jsondata) VALUES (?,?)",(keys,datatodump,))
-                        self.connection.commit()
-                #    self.connection.close()
+                    toupdate=list()
+                    while self.Changes:
+                        values=self.Changes.pop()
+                        datatodump=json.dumps(self.Data[values])
+                        toupdate.append((values,datatodump))
+                    if toupdate:
+                        self.cursor.executemany("INSERT OR REPLACE INTO UserIps (IP, jsondata) VALUES (?, ?)", toupdate)
+                    self.connection.commit()
+                    
                     flag=1
 
                 except Exception as e:
                     try :
-                        with open("LOg..txt",'a') as file:
+                        with open("Log.txt",'a') as file:
                             record=f"{time.time()}:Error is {e}\n"
                             file.write(record)
                             
@@ -119,7 +124,7 @@ class __RateLimiter:
                     self.__isfileopen=True
                     return flag
         except Exception as e:
-            with open("LOg..txt",'a') as file:
+            with open("Log.txt",'a') as file:
                         record=f"{time.time()}:Error is {e}\n"
                         file.write(record)
 
@@ -154,7 +159,8 @@ class __RateLimiter:
                         Datacopy=copy.deepcopy(self.Data)
                         self.Data[ip],flag=  self.__RecentVists(Data=Datacopy[ip],CrnTime=currenttime)
 
-                self.__Filedumper(Data=self.Data)                    
+                self.__Filedumper(Data=self.Data)
+                self.Changes.add(ip)                    
                 return (flag or error)   
     def __RecentVists(self,Data,CrnTime)->tuple: #Solution For DeadLock
         
@@ -189,7 +195,6 @@ class __RateLimiter:
             if self.stop_event.is_set():
                 break
             #here write about the clenaing freq
-            print(Cleaning)
             self.__Filedumper(Data=self.Data,update=0)
             if Cleaning:
 
@@ -205,7 +210,7 @@ class __RateLimiter:
                             self.Data.pop(deleted_ip,None)
                                                     
                 except Exception as e:
-                        with open("LOg..txt",'a') as file:
+                        with open("Log.txt",'a') as file:
                             record=f"{time.time()}:Error is {e}\n"
                             file.write(record)
                 # print("Sleep")
@@ -214,7 +219,7 @@ class __RateLimiter:
             time.sleep(Slptime)
         self.thread_running = False 
     def __Timecalculator(self,CleaningFrq,UpdateFreq)->int:
-        return 2                
+        return CleaningFrq                
 
 __Rl=__RateLimiter()
 def Ratelimiter(IP_Adrs:str,Cleaning=False,AutoUpdate=False,
