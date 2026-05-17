@@ -69,8 +69,9 @@ class __RateLimiter:
             self.cursor.execute('''
                         create table if not exists UserIps(
                             IP Text primary key,
-                                jsondata TEXT
+                                Data TEXT
                                 )''') #Table is created 
+            self.cursor.execute("SELECT IP, Data FROM UserIps")#Get the data
             self.Data={row[0]: json.loads(row[1]) for row in self.cursor.fetchall()}
             self.__isfileopen=False
             self.connection.commit()
@@ -101,7 +102,7 @@ class __RateLimiter:
                         datatodump=json.dumps(self.Data[values])
                         toupdate.append((values,datatodump))
                     if toupdate:
-                        self.cursor.executemany("INSERT OR REPLACE INTO UserIps (IP, jsondata) VALUES (?, ?)", toupdate)
+                        self.cursor.executemany("INSERT OR REPLACE INTO UserIps (IP, Data) VALUES (?, ?)", toupdate)
                     self.connection.commit()
                     flag=1
 
@@ -200,13 +201,12 @@ class __RateLimiter:
                 try:
                     query="""
                     DELETE FROM UserIps 
-                    WHERE ? - json_extract(jsondata, '$.LastSeenTime') > ?
+                    WHERE ? - json_extract(Data, '$.LastSeenTime') > ?
                     RETURNING IP
                     """
                     self.cursor.execute(query,(currenttime,restlimit))
                     deleted_rows = self.cursor.fetchall()
                     if deleted_rows:
-                        print("Deleted row")
                         self.connection.commit()
                     with self.lock: 
                         for row in deleted_rows:
