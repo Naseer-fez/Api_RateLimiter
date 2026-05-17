@@ -103,7 +103,6 @@ class __RateLimiter:
                     if toupdate:
                         self.cursor.executemany("INSERT OR REPLACE INTO UserIps (IP, jsondata) VALUES (?, ?)", toupdate)
                     self.connection.commit()
-                    
                     flag=1
 
                 except Exception as e:
@@ -188,7 +187,6 @@ class __RateLimiter:
         self.thread_running=True
         CleanData={}
         Slptime=self.__Timecalculator(ClnFrq,UpdateFreq)
-        print("Entred Background Worker")
         while not self.stop_event.is_set():
             # print("Inside the Loop")
             self.stop_event.wait(ClnFrq)
@@ -200,15 +198,24 @@ class __RateLimiter:
 
                 currenttime=int(time.time())
                 try:
-                    self.cursor.execute("Delete  from UserIps where  ?- LastSeenTime >?",(currenttime,restlimit,))
+                    query="""
+                    DELETE FROM UserIps 
+                    WHERE ? - json_extract(jsondata, '$.LastSeenTime') > ?
+                    RETURNING IP
+                    """
+                    self.cursor.execute(query,(currenttime,restlimit))
                     deleted_rows = self.cursor.fetchall()
                     if deleted_rows:
+                        print("Deleted row")
                         self.connection.commit()
                     with self.lock: 
                         for row in deleted_rows:
                             deleted_ip=row[0]
                             self.Data.pop(deleted_ip,None)
-                                                    
+                # except sqlite3.OperationalError as e:
+                # #"""THis is the no coloum found error wont be that expsenive and also it will spoil the log.txt so 
+                # #  it is better now to log this error
+                #      pass
                 except Exception as e:
                         with open("Log.txt",'a') as file:
                             record=f"{time.time()}:Error is {e}\n"
@@ -219,6 +226,7 @@ class __RateLimiter:
             time.sleep(Slptime)
         self.thread_running = False 
     def __Timecalculator(self,CleaningFrq,UpdateFreq)->int:
+        #Need to create a proper time calcuator here
         return CleaningFrq                
 
 __Rl=__RateLimiter()
