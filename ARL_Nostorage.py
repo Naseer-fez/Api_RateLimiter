@@ -12,7 +12,7 @@ class __RateLimiter:
         self.lock = threading.RLock()
 
         pass
-    def API_RL(self,IP_Adrs:str,Cleaning=False,CleaningFreq=80,CooldownTime=80,AllowedFreq=10,restlimit=100)->int:
+    def API_RL(self,IP_Adrs:str,Cleaning=False,CleaningFreq=80,CooldownTime=80,AllowedFreq=10,ResetTime=100)->int:
         # if isinstance(ipaddress,str):
         #     self.ip=int(ipaddress.ip_address(IP_Adrs))
         # else:print("Here")
@@ -24,7 +24,7 @@ class __RateLimiter:
             BackgroundThread=threading.Thread(
             
                 target=self.__BackgroundWorker,
-                args=(CleaningFreq,restlimit,),
+                args=(CleaningFreq,ResetTime,),
                 daemon=True)
             BackgroundThread.start()
             
@@ -121,11 +121,11 @@ class __RateLimiter:
                
 
 __Rl=__RateLimiter()
-def Ratelimiter(IP_Adrs:str,Cleaning=False,CleaningFreq=80,AllowedFreq=10,Resetlimit=100)->int:
+def Ratelimiter(IP_Adrs:str,Cleaning=False,CleaningFreq=80,AllowedFreq=10,ResetTime=100)->int:
     global __Rl
    
     
-    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,CleaningFreq=CleaningFreq,AllowedFreq=AllowedFreq,resetlimit=Resetlimit))
+    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,CleaningFreq=CleaningFreq,AllowedFreq=AllowedFreq,ResetTime=ResetTime))
 
             
             
