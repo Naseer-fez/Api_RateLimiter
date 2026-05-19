@@ -81,11 +81,11 @@ class __RateLimiter:
     def __BackgroundWorker(self,ClnFrq=100,restlimit=100):
         
         self.thread_running=True
-        CleanData={}
+        self.Data={}
         
         while not self.stop_event.is_set():
             # print("Inside the Loop")
-                self.stop_event.wait(ClnFrq)
+                # self.stop_event.wait(ClnFrq)
                 if self.stop_event.is_set():
                     break
            
@@ -94,23 +94,22 @@ class __RateLimiter:
                     currenttime=int(time.time())
                     # Keystodelete=[]
                     changes=False
-                    CleanData=self.Data.copy()
-                    keys=list(CleanData.keys())
+                    keys=list(self.Data.keys())
                     for ip in keys:
                         # print("Checking IPs")
                         # print("Key here")
-                        if(currenttime-CleanData[ip]["LastSeenTime"]>restlimit):
+                        if(currenttime-self.Data[ip]["LastSeenTime"]>restlimit):
                             # print("BYEEE")
                             # Keystodelete.append(ip)
                             # print("Found IP")
                             changes=True
                             try:
-                                del CleanData[ip]
+                                del self.Data[ip]
                             except Exception as e:
                                 print(e)
                     if changes is True:
                         # print("Bye IPPPP")
-                        self.Data=CleanData
+                        self.Data=self.Data
                         changes=False
             
                 # print("Sleep")

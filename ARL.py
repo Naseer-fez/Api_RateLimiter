@@ -182,7 +182,7 @@ class __RateLimiter:
         Slptime=self.__Timecalculator(ClnFrq,UpdateFreq)
         while not self.stop_event.is_set():
             # print("Inside the Loop")
-            self.stop_event.wait(ClnFrq)
+            # self.stop_event.wait(ClnFrq)
             if self.stop_event.is_set():
                 break
             if Cleaning:
