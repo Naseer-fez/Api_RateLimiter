@@ -1,6 +1,6 @@
 ##  How to Run
 ```python
-from ARL import ratelimiter as APIRL
+from apirlpy import  ratelimiter as APIRL
 #Import the Function
 
 # Checking rate limit for a specific IP
@@ -8,7 +8,7 @@ CoolDown=APIRL(IP_Adrs="127.0.0.1", #IP address ofthe Client
 #_______________________________________________________________
 Cleaning=False, #To Enable the Ip Address  Cleaning 
 CleaningFreq=80,# The Frequency at which the cleaning shoudl occur
-AutoUpdate=True, #If you want to update the Data only after a certain time to reduce I/O operations
+AutoUpdate=False, #If you want to update the Data only after a certain time to reduce I/O operations
 UpdateFreq=70, #(value in sec) of auto update
 CooldownTime=20, #Amount of time differnce the Clients last vist shoudld 
 # exced for the IP address cleaner to remove the data
