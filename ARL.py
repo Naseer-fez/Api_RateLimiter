@@ -219,22 +219,22 @@ class __RateLimiter:
     def __Timecalculator(self,CleaningFrq,UpdateFreq)->int:
         return UpdateFreq                    
 
-__Rl=__RateLimiter()
+_cache={}
 def Ratelimiter(IP_Adrs:str,Cleaning=False,AutoUpdate=False,
                 CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,UpdateFreq=8,Filename=None,FolderPath=None)->int:
-    global __Rl
-    if (Filename is not None) and (FolderPath is not None):
-        __Rl = __RateLimiter(filename=Filename, folder=FolderPath)
+    key=(Filename,FolderPath)
+    if key not in _cache:
+        _cache[key]=__RateLimiter(filename=Filename,folder=FolderPath)
     
+    __Rl=_cache[key]
     return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,AutoUpdate=AutoUpdate,
                CooldownTime=CooldownTime,AllowedFreq=AllowedFreq,CleaningFreq=CleaningFreq,ResetTime=ResetTime,UpdateFreq=UpdateFreq))
 
             
             
 if __name__=="__main__":
-
-    
     v=Ratelimiter("127.0.0.2",Cleaning=0,CleaningFreq=1,CooldownTime=7)
+
     print(v)
 
             
