@@ -124,7 +124,8 @@ def Ratelimiter(IP_Adrs:str,Cleaning=False,CleaningFreq=80,AllowedFreq=10,ResetT
     global __Rl
    
     
-    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,CleaningFreq=CleaningFreq,AllowedFreq=AllowedFreq,ResetTime=ResetTime))
+    return (__Rl.API_RL(IP_Adrs=IP_Adrs,Cleaning=Cleaning,CleaningFreq=CleaningFreq,
+                        AllowedFreq=AllowedFreq,ResetTime=ResetTime,CooldownTime=Cooldowntime))
 
             
             
