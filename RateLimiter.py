@@ -6,7 +6,8 @@ def ARL(IP_Adrs:str,Cleaning=False,AutoUpdate=False,
                 CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,UpdateFreq=8,Filename=___samplefile,FolderPath=None,Format=None)->int:
     if Format is None:
         from ARL_nostorage import Ratelimiter as Rl
-        return Rl(IP_Adrs=IP_Adrs,Cleaning=Cleaning,CleaningFreq=CleaningFreq,AllowedFreq=AllowedFreq,ResetTime=ResetTime)
+        return Rl(IP_Adrs=IP_Adrs,Cleaning=Cleaning,CleaningFreq=CleaningFreq,
+                  CooldownTime=CooldownTime,AllowedFreq=AllowedFreq,ResetTime=ResetTime)
     elif (isinstance(Format,str) is False):
         raise TypeError("Only String Option is Availabe for Format Option")
     elif (Format.lower())=="json":

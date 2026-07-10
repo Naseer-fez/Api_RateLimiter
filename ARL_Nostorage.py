@@ -120,7 +120,7 @@ class __RateLimiter:
                
 
 __Rl=__RateLimiter()
-def Ratelimiter(IP_Adrs:str,Cleaning=False,CleaningFreq=80,AllowedFreq=10,ResetTime=100)->int:
+def Ratelimiter(IP_Adrs:str,Cleaning=False,CleaningFreq=80,AllowedFreq=10,ResetTime=100,Cooldowntime=20)->int:
     global __Rl
    
     
