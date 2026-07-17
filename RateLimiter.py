@@ -1,7 +1,8 @@
 from pathlib import Path
 import sys
 __isfileopen :bool = False
-___samplefile = Path(sys.modules['__main__'].__file__).stem
+_main_file = getattr(sys.modules.get('__main__'), '__file__', None)
+___samplefile = Path(_main_file).stem if _main_file else "sample"
 def ARL(IP_Adrs:str,Cleaning=False,AutoUpdate=False,
                 CooldownTime=20,AllowedFreq=8,CleaningFreq=80,ResetTime=8,UpdateFreq=8,Filename=___samplefile,FolderPath=None,Format=None)->int:
     if Format is None:

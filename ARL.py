@@ -10,7 +10,8 @@ import copy
 
 class __RateLimiter:
     __isfileopen :bool = False
-    __samplefile = Path(sys.modules['__main__'].__file__).stem
+    _main_file = getattr(sys.modules.get('__main__'), '__file__', None)
+    __samplefile = Path(_main_file).stem if _main_file else "sample"
     def __init__(self,filename=__samplefile,filetype="json",folder=None):
         self.thread_running = False
         self.filename=filename 
