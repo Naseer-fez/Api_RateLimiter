@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+
+
+[project]
+name = "apirlpy"
+# name="Api_RateLimiter"
+version = "0.1.5"
+authors = [
+  { name="Shaik Naseer John Ahmed",email="sknaseer.fez@gmail.com" },
+]
+description = "A Python Based API RateLimiter "
+readme = "README.md"
+requires-python = ">=3.4"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/Naseer-fez/Apirl-py"
+Issues = "https://github.com/Naseer-fez/Apirl-py/issues"
